@@ -143,6 +143,7 @@ Resources:
 
   CompleteVideoWorkflow:
     Type: "AWS::CloudFormation::Stack"
+    DependsOn: MieStack
     Properties:
       TemplateURL: !Join
         - ""
@@ -174,6 +175,7 @@ Resources:
 
   CompleteImageWorkflow:
     Type: "AWS::CloudFormation::Stack"
+    DependsOn: MieStack
     Properties:
       TemplateURL: !Join
         - ""
