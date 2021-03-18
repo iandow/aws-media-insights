@@ -25,11 +25,13 @@ jobs:
           ENVTEST2: "iantest2"
         run: | 
           export ENVTEST="iantest"
-          echo hi $ENVTEST
-          echo hi $ENVTEST2
+          echo "ENVTEST=iantest" >> $GITHUB_ENV
+          echo "ENVTEST2=$ENVTEST2" >> $GITHUB_ENV
+          echo "ENVTEST3=$ENVTEST2" >> $GITHUB_ENV
 
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
         run: |
           echo hi $ENVTEST
           echo hi $ENVTEST2
+          echo hi $ENVTEST3
