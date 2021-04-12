@@ -24,4 +24,5 @@ jobs:
       - name: iantest
         run: |
           git clone https://github.com/iandow/aws-media-insights-puppeteer
+          cd aws-media-insights-puppeteer
           docker build --tag=cas-puppeteer:latest .
