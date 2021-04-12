@@ -70,6 +70,7 @@ jobs:
           if [ $? -eq 0 ]; 
           then break; # we found the invitation email so quit looking
           fi;
+          done;
           # Remove the invitation email from s3
           aws s3 rm s3://github-test-bot/$INVITATION_EMAIL
           TEMP_PASSWORD=$(cat ./invitation_email | grep 'temporary password' | sed 's/.*password is \(.*\)<br>AWS.*/\1/')
