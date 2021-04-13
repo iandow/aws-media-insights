@@ -81,6 +81,7 @@ jobs:
           
       - name: Start puppeteer
         run: |
+          TEMP_PASSWORD="${{ env.TEMP_PASSWORD }}"
           WEBAPP_URL=${{ env.WEBAPP_URL }}
           echo "WEBAPP_URL is $WEBAPP_URL"
           echo "Downloading puppeteer tests"
