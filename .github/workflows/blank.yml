@@ -28,7 +28,6 @@ jobs:
 
       - name: Deploy stack
         run: |
-          cd deployment
           TEMPLATE=$(cat template | cut -f 2 -d "'")
           rm -f template
           WEBAPP_STACK_NAME="pr8b5b296"
