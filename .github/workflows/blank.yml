@@ -18,6 +18,15 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
 
+      - name: Set the value
+        id: step_one
+        run: |
+            echo "action_state=yellow" >> $GITHUB_ENV
+      - name: Use the value
+        id: step_two
+        run: |
+            echo "${{ env.action_state }}" # This will output 'yellow'
+
       - name: Initialize AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -49,12 +58,13 @@ jobs:
           # Password may contain HTML entities, so decode them to characters
           TEMP_PASSWORD=$(echo $TEMP_PASSWORD | perl -MHTML::Entities -pe 'decode_entities($_);')
           echo "Temp password is $TEMP_PASSWORD"
-          echo '::set-output name=temp_password::${TEMP_PASSWORD}'
+          echo "TEMP_PASSWORD=${TEMP_PASSWORD}" >> $GITHUB_ENV
 
 
       - name: Start puppeteer
         run: |
           echo "${{ env.TEMP_PASSWORD }}" # This will output 'yellow'
-          export TEMP_PASSWORD=${{ env.temp_password }}
+
+          export TEMP_PASSWORD=${{ steps.vars.outputs.temp_password }}
           echo "Temp password is $TEMP_PASSWORD"
           echo "${{ env.temp_password }}"
