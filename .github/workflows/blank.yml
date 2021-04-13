@@ -49,9 +49,10 @@ jobs:
           TEMP_PASSWORD=$(echo $TEMP_PASSWORD | perl -MHTML::Entities -pe 'decode_entities($_);')
           echo "Temp password is $TEMP_PASSWORD"
           echo "TEMP_PASSWORD=$TEMP_PASSWORD" >> $GITHUB_ENV
-          echo ::set-output name=temp_password::${TEMP_PASSWORD}
+          echo '::set-output name=temp_password::${TEMP_PASSWORD}'
 
       - name: Start puppeteer
         run: |
           export TEMP_PASSWORD=${{ steps.vars.outputs.temp_password }}
           echo "Temp password is $TEMP_PASSWORD"
+          echo "${{ env.temp_password }}"
