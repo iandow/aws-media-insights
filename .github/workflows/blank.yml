@@ -25,6 +25,8 @@ jobs:
         run: |
           # Get the newest file in s3://github-test-bot
           NUM_EMAILS=$(aws s3 ls s3://github-test-bot | wc -l)
+          aws s3 ls s3://github-test-bot 
+          aws s3 ls s3://github-test-bot | wc -l
           # Iterate thru all the files in the s3 bucket until you find the invitation 
           # email that references to our stack:
           for i in `seq 1 $NUM_EMAILS`; do
