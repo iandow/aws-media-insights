@@ -54,8 +54,6 @@ jobs:
         run: aws s3 rb s3://${DIST_OUTPUT_BUCKET}-${REGION} --force
 
       - name: Get login credentials
-        env: 
-          TEMP_PASSWORD: 
         run: |
           # Get the newest file in s3://github-test-bot
           NUM_EMAILS=$(aws s3 ls s3://github-test-bot | wc -l)
@@ -72,17 +70,18 @@ jobs:
           fi;
           done;
           # Remove the invitation email from s3
-          aws s3 rm s3://github-test-bot/$INVITATION_EMAIL
+          #aws s3 rm s3://github-test-bot/$INVITATION_EMAIL
           TEMP_PASSWORD=$(cat ./invitation_email | grep 'temporary password' | sed 's/.*password is \(.*\)<br>AWS.*/\1/')
           # Password may contain HTML entities, so decode them to characters
           TEMP_PASSWORD=$(echo $TEMP_PASSWORD | perl -MHTML::Entities -pe 'decode_entities($_);')
           echo "Temp password is $TEMP_PASSWORD"
           echo "TEMP_PASSWORD=$TEMP_PASSWORD" >> $GITHUB_ENV
+          echo ::set-output name=temp_password::${TEMP_PASSWORD}
+
           
       - name: Start puppeteer
-        env: 
-          TEMP_PASSWORD: 
         run: |
+          export TEMP_PASSWORD=${{ steps.vars.outputs.temp_password }}
           echo "Temp password is $TEMP_PASSWORD"
           echo "Downloading puppeteer tests"
           git clone https://github.com/iandow/aws-media-insights-puppeteer
