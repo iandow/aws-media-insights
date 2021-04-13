@@ -54,6 +54,11 @@ jobs:
 
       - name: Start puppeteer
         run: |
-          echo "${{ env.TEMP_PASSWORD }}" 
           TEMP_PASSWORD=${{ env.TEMP_PASSWORD }}
           echo "Temp password is $TEMP_PASSWORD"
+          echo "Downloading puppeteer tests"
+          git clone https://github.com/iandow/aws-media-insights-puppeteer
+          cd aws-media-insights-puppeteer
+          npm i puppeteer puppeteer-screenshot-tester
+          docker build --tag=cas-puppeteer:latest .
+          docker run --rm -v "$PWD":/usr/src/app -e WEBAPP_URL="https://dijx1j3adkbo4.cloudfront.net" TEMP_PASSWORD=$TEMP_PASSWORD cas-puppeteer:latest
