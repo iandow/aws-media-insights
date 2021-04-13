@@ -25,6 +25,6 @@ jobs:
         run: |
           # Get the newest file in s3://github-test-bot
           NUM_EMAILS=$(aws s3 ls s3://github-test-bot | wc -l)
-          aws s3 ls s3://github-test-bot 
+          aws s3 ls s3://github-test-bot  | cat
           aws s3 ls s3://github-test-bot | wc -l
 
