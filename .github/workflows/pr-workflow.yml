@@ -86,5 +86,6 @@ jobs:
           echo "Downloading puppeteer tests"
           git clone https://github.com/iandow/aws-media-insights-puppeteer
           cd aws-media-insights-puppeteer
+          npm i puppeteer puppeteer-screenshot-tester
           docker build --tag=cas-puppeteer:latest .
           #docker run --rm -v "$PWD":/usr/src/app -e WEBAPP_URL=$WEBAPP_URL TEMP_PASSWORD=$TEMP_PASSWORD cas-puppeteer:latest
