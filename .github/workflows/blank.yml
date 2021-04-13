@@ -26,6 +26,20 @@ jobs:
           invitation-email-recipient: ${{ secrets.INVITATION_EMAIL_RECIPIENT }}
           aws-region: us-west-2
 
+      - name: Deploy stack
+        run: |
+          cd deployment
+          TEMPLATE=$(cat template | cut -f 2 -d "'")
+          rm -f template
+          WEBAPP_STACK_NAME="pr8b5b296"
+          # set -x
+          # aws cloudformation create-stack --stack-name $WEBAPP_STACK_NAME --template-url $TEMPLATE --region $REGION --parameters ParameterKey=AdminEmail,ParameterValue=$EMAIL --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND --disable-rollback
+          # aws cloudformation wait stack-create-complete --stack-name $WEBAPP_STACK_NAME
+          # set +x
+          WEBAPP_URL=$(aws cloudformation --region us-west-2 describe-stacks --stack-name pr8b5b296 --query "Stacks[0].Outputs[?OutputKey=='ContentAnalyisSolution'].OutputValue" --output text)
+          echo "WEBAPP_URL=${WEBAPP_URL}" >> $GITHUB_ENV
+          echo "WEBAPP_URL is $WEBAPP_URL"
+
       # Runs a single command using the runners shell
       - name: Get login credentials
         run: |
