@@ -21,8 +21,32 @@ jobs:
       - uses: actions/checkout@v2
 
       # Runs a single command using the runners shell
-      - name: iantest
+      - name: Get login credentials
         run: |
-          git clone https://github.com/iandow/aws-media-insights-puppeteer
-          cd aws-media-insights-puppeteer
-          docker build --tag=cas-puppeteer:latest .
+          # Get the newest file in s3://github-test-bot
+          NUM_EMAILS=$(aws s3 ls s3://github-test-bot | wc -l)
+          # Iterate thru all the files in the s3 bucket until you find the invitation 
+          # email that references to our stack:
+          for i in `seq 1 $NUM_EMAILS`; do
+          INVITATION_EMAIL=$(aws s3api list-objects-v2 --bucket "github-test-bot" --query 'reverse(sort_by(Contents, &LastModified))['$((i-1))'].Key' --output=text)
+          # Make sure it belongs to our stack
+          aws s3 cp s3://github-test-bot/$INVITATION_EMAIL ./invitation_email --quiet
+          WEBAPP_STACK_NAME="prde9bb9c"
+          grep ":stack/${WEBAPP_STACK_NAME}" ./invitation_email
+          if [ $? -eq 0 ]; 
+          then break; # we found the invitation email so quit looking
+          fi;
+          done;
+          # Remove the invitation email from s3
+          #aws s3 rm s3://github-test-bot/$INVITATION_EMAIL
+          TEMP_PASSWORD=$(cat ./invitation_email | grep 'temporary password' | sed 's/.*password is \(.*\)<br>AWS.*/\1/')
+          # Password may contain HTML entities, so decode them to characters
+          TEMP_PASSWORD=$(echo $TEMP_PASSWORD | perl -MHTML::Entities -pe 'decode_entities($_);')
+          echo "Temp password is $TEMP_PASSWORD"
+          echo "TEMP_PASSWORD=$TEMP_PASSWORD" >> $GITHUB_ENV
+          echo ::set-output name=temp_password::${TEMP_PASSWORD}
+
+      - name: Start puppeteer
+        run: |
+          export TEMP_PASSWORD=${{ steps.vars.outputs.temp_password }}
+          echo "Temp password is $TEMP_PASSWORD"
