@@ -49,10 +49,12 @@ jobs:
           # Password may contain HTML entities, so decode them to characters
           TEMP_PASSWORD=$(echo $TEMP_PASSWORD | perl -MHTML::Entities -pe 'decode_entities($_);')
           echo "Temp password is $TEMP_PASSWORD"
-          echo '::set-output name=temp_password::${TEMP_PASSWORD}'
+          echo '::set-output name=TEMP_PASSWORD::${TEMP_PASSWORD}'
 
 
       - name: Start puppeteer
         run: |
-          TEMP_PASSWORD=${{ env.temp_password }}
+          echo "${{ env.TEMP_PASSWORD }}" # This will output 'yellow'
+          export TEMP_PASSWORD=${{ env.TEMP_PASSWORD }}
           echo "Temp password is $TEMP_PASSWORD"
+          echo "${{ env.temp_password }}"
