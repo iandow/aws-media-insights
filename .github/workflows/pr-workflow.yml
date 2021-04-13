@@ -48,6 +48,8 @@ jobs:
           set -x
           aws cloudformation create-stack --stack-name $WEBAPP_STACK_NAME --template-url $TEMPLATE --region $REGION --parameters ParameterKey=AdminEmail,ParameterValue=$EMAIL --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND --disable-rollback
           aws cloudformation wait stack-create-complete --stack-name $WEBAPP_STACK_NAME
+          WEBAPP_URL=$(aws cloudformation --region us-west-2 describe-stacks --stack-name prde9bb9c --query "Stacks[0].Outputs[?OutputKey=='ContentAnalyisSolution'].OutputValue" --output text)
+          echo "WEBAPP_URL=${WEBAPP_URL}" >> $GITHUB_ENV
           set +x
 
       - name: Clean build environment
@@ -75,17 +77,16 @@ jobs:
           # Password may contain HTML entities, so decode them to characters
           TEMP_PASSWORD=$(echo $TEMP_PASSWORD | perl -MHTML::Entities -pe 'decode_entities($_);')
           echo "Temp password is $TEMP_PASSWORD"
-          echo "TEMP_PASSWORD=$TEMP_PASSWORD" >> $GITHUB_ENV
-          echo ::set-output name=temp_password::${TEMP_PASSWORD}
+          echo "TEMP_PASSWORD=${TEMP_PASSWORD}" >> $GITHUB_ENV
 
           
       - name: Start puppeteer
         run: |
-          export TEMP_PASSWORD=${{ steps.vars.outputs.temp_password }}
+          TEMP_PASSWORD=${{ env.TEMP_PASSWORD }}
           echo "Temp password is $TEMP_PASSWORD"
           echo "Downloading puppeteer tests"
           git clone https://github.com/iandow/aws-media-insights-puppeteer
           cd aws-media-insights-puppeteer
           npm i puppeteer puppeteer-screenshot-tester
           docker build --tag=cas-puppeteer:latest .
-          docker run --rm -v "$PWD":/usr/src/app -e WEBAPP_URL=$WEBAPP_URL TEMP_PASSWORD=$TEMP_PASSWORD cas-puppeteer:latest
+          docker run --rm -v "$PWD":/usr/src/app -e WEBAPP_URL=${{ env.WEBAPP_URL }} -e TEMP_PASSWORD=$TEMP_PASSWORD cas-puppeteer:latest
