@@ -81,6 +81,9 @@ jobs:
 
           
       - name: Start puppeteer
+        with:
+          path: ~/
+          working-directory: ~/
         run: |
           TEMP_PASSWORD="${{ env.TEMP_PASSWORD }}"
           WEBAPP_URL=${{ env.WEBAPP_URL }}
@@ -92,5 +95,5 @@ jobs:
           cd aws-media-insights-puppeteer
           npm i puppeteer puppeteer-screenshot-tester
           docker build --tag=cas-puppeteer:latest .
-          docker run --rm -v "$PWD":/usr/src/app -e WEBAPP_URL=$WEBAPP_URL -e TEMP_PASSWORD=$TEMP_PASSWORD cas-puppeteer:latest
+          docker run --rm -v "$PWD":/usr/src/app -e WEBAPP_URL="${WEBAPP_URL}" -e TEMP_PASSWORD="${TEMP_PASSWORD}" cas-puppeteer:latest
           set +x
