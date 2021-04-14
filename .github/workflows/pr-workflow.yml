@@ -81,9 +81,6 @@ jobs:
 
           
       - name: Start puppeteer
-        with:
-          path: ~/
-          working-directory: ~/
         run: |
           TEMP_PASSWORD="${{ env.TEMP_PASSWORD }}"
           WEBAPP_URL=${{ env.WEBAPP_URL }}
