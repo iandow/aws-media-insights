@@ -14,10 +14,10 @@ jobs:
       VERSION: "2.0.3"
       EMAIL: "s3sink@bigendiandata.com"
     steps:
-      # - name: Check out pr branch
-      #   uses: actions/checkout@v2
-      #   with:
-      #     ref: ${{ github.sha }}
+      - name: Check out pr branch
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
 
       - name: Initialize AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
