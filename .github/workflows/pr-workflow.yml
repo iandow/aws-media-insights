@@ -77,6 +77,7 @@ jobs:
           TEMP_PASSWORD=$(cat ./invitation_email | grep 'temporary password' | sed 's/.*password is \(.*\)<br>AWS.*/\1/')
           # Password may contain HTML entities, so decode them to characters
           TEMP_PASSWORD=$(echo $TEMP_PASSWORD | perl -MHTML::Entities -pe 'decode_entities($_);')
+          echo "TEMP_PASSWORD=${TEMP_PASSWORD}" >> $GITHUB_ENV
 
           
       - name: Start puppeteer
