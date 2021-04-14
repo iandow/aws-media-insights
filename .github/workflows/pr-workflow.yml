@@ -92,5 +92,7 @@ jobs:
           cd aws-media-insights-puppeteer
           npm i puppeteer puppeteer-screenshot-tester
           docker build --tag=cas-puppeteer:latest .
-          docker run --rm -v "$PWD":/usr/src/app -e WEBAPP_URL="${WEBAPP_URL}" -e TEMP_PASSWORD="${TEMP_PASSWORD}" cas-puppeteer:latest
+          docker run --rm -v "$PWD":/usr/src/app -e WEBAPP_URL="https://dlueli904z5k8.cloudfront.net" -e TEMP_PASSWORD=$TEMP_PASSWORD cas-puppeteer:latest
+          docker run --rm -v "$PWD":/usr/src/app -e WEBAPP_URL="https://d2o2zlcqzwwxee.cloudfront.net" -e TEMP_PASSWORD=
+          TEMP_PASSWORD="cN80N@4I" cas-puppeteer:latest
           set +x
