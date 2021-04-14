@@ -81,6 +81,7 @@ jobs:
 
           
       - name: Start puppeteer
+        working-directory: ~/temp
         run: |
           TEMP_PASSWORD="cN80N@4I"
           WEBAPP_URL="https://d2o2zlcqzwwxee.cloudfront.net"
