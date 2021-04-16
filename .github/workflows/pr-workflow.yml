@@ -80,19 +80,20 @@ jobs:
       #     echo "TEMP_PASSWORD=${TEMP_PASSWORD}" >> $GITHUB_ENV
 
       - name: Start workflow
-        STACK_NAME="pr${SHORT_SHA}"
-        # Get the workflow api endpoint
-        MIE_STACK_NAME=$(aws cloudformation list-stacks --query 'StackSummaries[?starts_with(StackName,`'$STACK_NAME'-MieStack`)].StackName' --output json --region $REGION | grep MieStack | cut -f 2 -d '"' | tail -n 1)
-        WORKFLOW_API_ENDPOINT=$(aws cloudformation describe-stacks --stack-name "$MIE_STACK_NAME" --region $REGION --query "Stacks[0].Outputs[?OutputKey=='WorkflowApiEndpoint'].OutputValue" --output text)
-        DATAPLANE_BUCKET=$(aws cloudformation describe-stacks --stack-name "$MIE_STACK_NAME" --region $REGION --query "Stacks[0].Outputs[?OutputKey=='DataplaneBucket'].OutputValue" --output text)
-        # Upload a test video file
-        wget https://vjs.zencdn.net/v/oceans.mp4
-        aws s3 cp oceans.mp4 s3://${DATAPLANE_BUCKET}/public/upload/
-        # Install an IAM enabled HTTP client
-        pip install awscurl
-        # Start the CasVideoWorkflow
-        awscurl -X POST --region us-west-2 --data '{"Name":"CasVideoWorkflow", "Input":{"Media":{"Video":{"S3Bucket": "'${DATAPLANE_BUCKET}'", "S3Key":"public/upload/oceans.mp4"}}}}' ${WORKFLOW_API_ENDPOINT}workflow/execution
-          
+        run: |
+          STACK_NAME="pr${SHORT_SHA}"
+          # Get the workflow api endpoint
+          MIE_STACK_NAME=$(aws cloudformation list-stacks --query 'StackSummaries[?starts_with(StackName,`'$STACK_NAME'-MieStack`)].StackName' --output json --region $REGION | grep MieStack | cut -f 2 -d '"' | tail -n 1)
+          WORKFLOW_API_ENDPOINT=$(aws cloudformation describe-stacks --stack-name "$MIE_STACK_NAME" --region $REGION --query "Stacks[0].Outputs[?OutputKey=='WorkflowApiEndpoint'].OutputValue" --output text)
+          DATAPLANE_BUCKET=$(aws cloudformation describe-stacks --stack-name "$MIE_STACK_NAME" --region $REGION --query "Stacks[0].Outputs[?OutputKey=='DataplaneBucket'].OutputValue" --output text)
+          # Upload a test video file
+          wget https://vjs.zencdn.net/v/oceans.mp4
+          aws s3 cp oceans.mp4 s3://${DATAPLANE_BUCKET}/public/upload/
+          # Install an IAM enabled HTTP client
+          pip install awscurl
+          # Start the CasVideoWorkflow
+          awscurl -X POST --region us-west-2 --data '{"Name":"CasVideoWorkflow", "Input":{"Media":{"Video":{"S3Bucket": "'${DATAPLANE_BUCKET}'", "S3Key":"public/upload/oceans.mp4"}}}}' ${WORKFLOW_API_ENDPOINT}workflow/execution
+            
       - name: Start puppeteer
         # The checkout action above changes the work dir in a way that breaks 
         # the docker commands in this action, so we need to specify work dir
