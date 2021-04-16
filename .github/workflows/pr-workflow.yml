@@ -80,11 +80,6 @@ jobs:
       #     echo "TEMP_PASSWORD=${TEMP_PASSWORD}" >> $GITHUB_ENV
 
       - name: Start workflow
-        with:
-          aws-access-key-id: ${{ secrets.BUILD_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.BUILD_AWS_SECRET_ACCESS_KEY }}
-          invitation-email-recipient: ${{ secrets.INVITATION_EMAIL_RECIPIENT }}
-          aws-region: us-west-2
         run: |
           STACK_NAME="pr${SHORT_SHA}"
           # Get the workflow api endpoint
@@ -97,7 +92,7 @@ jobs:
           # Install an IAM enabled HTTP client
           pip install awscurl
           # Start the CasVideoWorkflow
-          awscurl -X POST --region us-west-2 --data '{"Name":"CasVideoWorkflow", "Input":{"Media":{"Video":{"S3Bucket": "'${DATAPLANE_BUCKET}'", "S3Key":"public/upload/oceans.mp4"}}}}' ${WORKFLOW_API_ENDPOINT}workflow/execution
+          awscurl --secret_key ${{ secrets.BUILD_AWS_SECRET_ACCESS_KEY }} --access_key ${{ secrets.BUILD_AWS_ACCESS_KEY_ID }} --region $REGION -X POST --region us-west-2 --data '{"Name":"CasVideoWorkflow", "Input":{"Media":{"Video":{"S3Bucket": "'${DATAPLANE_BUCKET}'", "S3Key":"public/upload/oceans.mp4"}}}}' ${WORKFLOW_API_ENDPOINT}workflow/execution
             
       - name: Start puppeteer
         # The checkout action above changes the work dir in a way that breaks 
