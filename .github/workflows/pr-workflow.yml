@@ -88,7 +88,7 @@ jobs:
           WORKFLOW_API_ENDPOINT=$(aws cloudformation describe-stacks --stack-name "$MIE_STACK_NAME" --region $REGION --query "Stacks[0].Outputs[?OutputKey=='WorkflowApiEndpoint'].OutputValue" --output text)
           DATAPLANE_BUCKET=$(aws cloudformation describe-stacks --stack-name "$MIE_STACK_NAME" --region $REGION --query "Stacks[0].Outputs[?OutputKey=='DataplaneBucket'].OutputValue" --output text)
           # Upload a test video file
-          wget https://vjs.zencdn.net/v/oceans.mp4
+          wget -q https://vjs.zencdn.net/v/oceans.mp4
           aws s3 cp oceans.mp4 s3://${DATAPLANE_BUCKET}/public/upload/
           # Install an IAM enabled HTTP client
           pip install awscurl
@@ -111,7 +111,7 @@ jobs:
           echo "Downloading puppeteer tests"
           git clone https://github.com/iandow/aws-media-insights-puppeteer
           cd aws-media-insights-puppeteer
-          npm i puppeteer puppeteer-screenshot-tester
+          npm i puppeteer puppeteer-screenshot-tester --quiet
           docker build --tag=cas-puppeteer:latest .
           docker run --rm -v "$PWD":/usr/src/app -e WEBAPP_URL="${WEBAPP_URL}" -e TEMP_PASSWORD="${TEMP_PASSWORD}" cas-puppeteer:latest
           set +x
