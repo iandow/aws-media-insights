@@ -44,12 +44,12 @@ jobs:
       #     cd deployment
       #     TEMPLATE=$(cat template | cut -f 2 -d "'")
       #     rm -f template
-      #     WEBAPP_STACK_NAME="pr${SHORT_SHA}"
+      #     STACK_NAME="pr${SHORT_SHA}"
       #     set -x
-      #     aws cloudformation create-stack --stack-name $WEBAPP_STACK_NAME --template-url $TEMPLATE --region $REGION --parameters ParameterKey=AdminEmail,ParameterValue=$EMAIL --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND --disable-rollback
-      #     aws cloudformation wait stack-create-complete --stack-name $WEBAPP_STACK_NAME
+      #     aws cloudformation create-stack --stack-name $STACK_NAME --template-url $TEMPLATE --region $REGION --parameters ParameterKey=AdminEmail,ParameterValue=$EMAIL --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND --disable-rollback
+      #     aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
       #     set +x
-      #     WEBAPP_URL=$(aws cloudformation --region us-west-2 describe-stacks --stack-name $WEBAPP_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='ContentAnalyisSolution'].OutputValue" --output text)
+      #     WEBAPP_URL=$(aws cloudformation --region us-west-2 describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='ContentAnalyisSolution'].OutputValue" --output text)
       #     echo "WEBAPP_URL=${WEBAPP_URL}" >> $GITHUB_ENV
       #     echo "WEBAPP_URL is $WEBAPP_URL"
 
@@ -66,8 +66,8 @@ jobs:
       #     INVITATION_EMAIL=$(aws s3api list-objects-v2 --bucket "github-test-bot" --query 'reverse(sort_by(Contents, &LastModified))['$((i-1))'].Key' --output=text)
       #     # Make sure it belongs to our stack
       #     aws s3 cp s3://github-test-bot/$INVITATION_EMAIL ./invitation_email --quiet
-      #     WEBAPP_STACK_NAME="pr${SHORT_SHA}"
-      #     grep ":stack/${WEBAPP_STACK_NAME}" ./invitation_email
+      #     STACK_NAME="pr${SHORT_SHA}"
+      #     grep ":stack/${STACK_NAME}" ./invitation_email
       #     if [ $? -eq 0 ]; 
       #     then break; # we found the invitation email so quit looking
       #     fi;
@@ -79,8 +79,24 @@ jobs:
       #     TEMP_PASSWORD=$(echo $TEMP_PASSWORD | perl -MHTML::Entities -pe 'decode_entities($_);')
       #     echo "TEMP_PASSWORD=${TEMP_PASSWORD}" >> $GITHUB_ENV
 
+      - name: Start workflow
+        STACK_NAME="pr${SHORT_SHA}"
+        # Get the workflow api endpoint
+        MIE_STACK_NAME=$(aws cloudformation list-stacks --query 'StackSummaries[?starts_with(StackName,`'$STACK_NAME'-MieStack`)].StackName' --output json --region $REGION | grep MieStack | cut -f 2 -d '"' | tail -n 1)
+        WORKFLOW_API_ENDPOINT=$(aws cloudformation describe-stacks --stack-name "$MIE_STACK_NAME" --region $REGION --query "Stacks[0].Outputs[?OutputKey=='WorkflowApiEndpoint'].OutputValue" --output text)
+        DATAPLANE_BUCKET=$(aws cloudformation describe-stacks --stack-name "$MIE_STACK_NAME" --region $REGION --query "Stacks[0].Outputs[?OutputKey=='DataplaneBucket'].OutputValue" --output text)
+        # Upload a test video file
+        wget https://vjs.zencdn.net/v/oceans.mp4
+        aws s3 cp oceans.mp4 s3://${DATAPLANE_BUCKET}/public/upload/
+        # Install an IAM enabled HTTP client
+        pip install awscurl
+        # Start the CasVideoWorkflow
+        awscurl -X POST --region us-west-2 --data '{"Name":"CasVideoWorkflow", "Input":{"Media":{"Video":{"S3Bucket": "'${DATAPLANE_BUCKET}'", "S3Key":"public/upload/oceans.mp4"}}}}' ${WORKFLOW_API_ENDPOINT}workflow/execution
           
       - name: Start puppeteer
+        # The checkout action above changes the work dir in a way that breaks 
+        # the docker commands in this action, so we need to specify work dir
+        # explicitly here.
         working-directory: /home/runner/work/
         run: |
           TEMP_PASSWORD="gHRv|yQ3"
@@ -95,7 +111,5 @@ jobs:
           cd aws-media-insights-puppeteer
           npm i puppeteer puppeteer-screenshot-tester
           docker build --tag=cas-puppeteer:latest .
-          pwd
-          ls -1 .
           docker run --rm -v "$PWD":/usr/src/app -e WEBAPP_URL="${WEBAPP_URL}" -e TEMP_PASSWORD="${TEMP_PASSWORD}" cas-puppeteer:latest
           set +x
