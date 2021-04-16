@@ -81,8 +81,7 @@ jobs:
 
       - name: Start workflow
         run: |
-          # STACK_NAME="pr${SHORT_SHA}"
-          STACK_NAME="pr2014ed9"
+          STACK_NAME="pr${SHORT_SHA}"
           # Get the workflow api endpoint
           MIE_STACK_NAME=$(aws cloudformation list-stacks --query 'StackSummaries[?starts_with(StackName,`'$STACK_NAME'-MieStack`)].StackName' --output json --region $REGION | grep MieStack | cut -f 2 -d '"' | tail -n 1)
           WORKFLOW_API_ENDPOINT=$(aws cloudformation describe-stacks --stack-name "$MIE_STACK_NAME" --region $REGION --query "Stacks[0].Outputs[?OutputKey=='WorkflowApiEndpoint'].OutputValue" --output text)
@@ -140,10 +139,8 @@ jobs:
         # explicitly here.
         working-directory: /home/runner/work/
         run: |
-          TEMP_PASSWORD="gHRv|yQ3"
-          WEBAPP_URL="https://d2lytvcphsoxyz.cloudfront.net"
-          # TEMP_PASSWORD="${{ env.TEMP_PASSWORD }}"
-          # WEBAPP_URL=${{ env.WEBAPP_URL }}
+          TEMP_PASSWORD="${{ env.TEMP_PASSWORD }}"
+          WEBAPP_URL=${{ env.WEBAPP_URL }}
           echo "WEBAPP_URL is $WEBAPP_URL"
           echo "TEMP_PASSWORD is $TEMP_PASSWORD"
           set -x
