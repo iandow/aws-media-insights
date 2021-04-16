@@ -92,8 +92,47 @@ jobs:
           aws s3 cp oceans.mp4 s3://${DATAPLANE_BUCKET}/public/upload/
           # Install an IAM enabled HTTP client
           pip install awscurl
-          # Start the CasVideoWorkflow
-          awscurl --secret_key ${{ secrets.BUILD_AWS_SECRET_ACCESS_KEY }} --access_key ${{ secrets.BUILD_AWS_ACCESS_KEY_ID }} --region $REGION -X POST --region us-west-2 --data '{"Name":"CasVideoWorkflow", "Input":{"Media":{"Video":{"S3Bucket": "'${DATAPLANE_BUCKET}'", "S3Key":"public/upload/oceans.mp4"}}}}' ${WORKFLOW_API_ENDPOINT}workflow/execution
+          
+          # ####################################
+          # ###### TEST CasImageWorkflow #######
+          # ####################################
+          # # TODO: upload IMG_0425.png image file to dataplane bucket
+
+          # # Get workflow configuration
+          # WORKFLOW_NAME=CasImageWorkflow
+          
+          # # Disable faceSearch
+          # WORKFLOW_CONFIGURATION=$(awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/$WORKFLOW_NAME | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Stages.RekognitionStage.Configuration' --compact-output)
+          # WORKFLOW_CONFIGURATION=$(echo $WORKFLOW_CONFIGURATION | sed -e 's/"faceSearchImage":{"MediaType":"Image","Enabled":true}/"faceSearchImage":{"MediaType":"Image","Enabled":false}/')
+          # WORKFLOW_CONFIGURATION='{"RekognitionStage":'$WORKFLOW_CONFIGURATION'}'
+          
+          # # Execute workflow
+          # awscurl -X POST --region us-west-2 --data '{"Name":"CasImageWorkflow", "Configuration":'$WORKFLOW_CONFIGURATION', "Input":{"Media":{"Image":{"S3Bucket": "'${DATAPLANE_BUCKET}'", "S3Key":"IMG_0425.png"}}}}' ${WORKFLOW_API_ENDPOINT}workflow/execution > curl.txt
+
+          # # Wait until the workflow is done
+          # WORKFLOW_ID=$(cat curl.txt | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Id' --raw-output)
+          # WORKFLOW_STATUS=$(awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/execution/${WORKFLOW_ID} | cat | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Status' --raw-output)
+          # while [ "$WORKFLOW_STATUS" = "Started" ] || [ "$WORKFLOW_STATUS" = "Queued" ]; do sleep 1; WORKFLOW_STATUS=$(awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/execution/${WORKFLOW_ID} | cat | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Status' --raw-output); echo $WORKFLOW_STATUS; done
+          
+
+          ####################################
+          ###### TEST CasVideoWorkflow #######
+          ####################################
+          WORKFLOW_NAME=CasVideoWorkflow          
+
+          # Disable faceSearch and GenericDataLookup operator
+          WORKFLOW_CONFIGURATION=$(awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/$WORKFLOW_NAME | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Stages.defaultVideoStage.Configuration' --compact-output)
+          WORKFLOW_CONFIGURATION=$(echo $WORKFLOW_CONFIGURATION | sed -e 's/"faceSearch":{"MediaType":"Video","Enabled":true}/"faceSearch":{"MediaType":"Video","Enabled":false}/')
+          WORKFLOW_CONFIGURATION=$(echo $WORKFLOW_CONFIGURATION | sed -e 's/"GenericDataLookup":{"MediaType":"Video","Enabled":true}/"GenericDataLookup":{"MediaType":"Video","Enabled":false}/')
+          WORKFLOW_CONFIGURATION='{"defaultVideoStage":'$WORKFLOW_CONFIGURATION'}'
+
+          # Execute workflow
+          awscurl -X POST --region us-west-2 --data '{"Name":"CasVideoWorkflow", "Configuration":'$WORKFLOW_CONFIGURATION', "Input":{"Media":{"Video":{"S3Bucket": "'${DATAPLANE_BUCKET}'", "S3Key":"oceans.mp4"}}}}' ${WORKFLOW_API_ENDPOINT}workflow/execution > curl.txt
+
+          # Wait until the workflow is done
+          WORKFLOW_ID=$(cat curl.txt | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Id' --raw-output)
+          WORKFLOW_STATUS=$(awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/execution/${WORKFLOW_ID} | cat | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Status' --raw-output)
+          while [ "$WORKFLOW_STATUS" = "Started" ] || [ "$WORKFLOW_STATUS" = "Queued" ]; do sleep 10; WORKFLOW_STATUS=$(awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/execution/${WORKFLOW_ID} | cat | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Status' --raw-output); echo $WORKFLOW_STATUS; done
             
       - name: Start puppeteer
         # The checkout action above changes the work dir in a way that breaks 
