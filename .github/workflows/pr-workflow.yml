@@ -120,6 +120,7 @@ jobs:
           WORKFLOW_NAME=CasVideoWorkflow          
 
           # Disable faceSearch and GenericDataLookup operator
+          set -x
           WORKFLOW_CONFIGURATION=$(awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/$WORKFLOW_NAME | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Stages.defaultVideoStage.Configuration' --compact-output)
           WORKFLOW_CONFIGURATION=$(echo $WORKFLOW_CONFIGURATION | sed -e 's/"faceSearch":{"MediaType":"Video","Enabled":true}/"faceSearch":{"MediaType":"Video","Enabled":false}/')
           WORKFLOW_CONFIGURATION=$(echo $WORKFLOW_CONFIGURATION | sed -e 's/"GenericDataLookup":{"MediaType":"Video","Enabled":true}/"GenericDataLookup":{"MediaType":"Video","Enabled":false}/')
@@ -131,8 +132,9 @@ jobs:
           # Wait until the workflow is done
           WORKFLOW_ID=$(cat curl.txt | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Id' --raw-output)
           WORKFLOW_STATUS=$(awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/execution/${WORKFLOW_ID} | cat | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Status' --raw-output)
+          set +x
           while [ "$WORKFLOW_STATUS" = "Started" ] || [ "$WORKFLOW_STATUS" = "Queued" ]; do sleep 10; WORKFLOW_STATUS=$(awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/execution/${WORKFLOW_ID} | cat | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Status' --raw-output); echo $WORKFLOW_STATUS; done
-            
+
       - name: Start puppeteer
         # The checkout action above changes the work dir in a way that breaks 
         # the docker commands in this action, so we need to specify work dir
