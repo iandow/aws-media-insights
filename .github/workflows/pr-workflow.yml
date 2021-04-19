@@ -121,6 +121,12 @@ jobs:
 
           # Disable faceSearch and GenericDataLookup operator
           set -x
+          awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/$WORKFLOW_NAME
+          awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/$WORKFLOW_NAME | sed -e '1s/^.//'
+          awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/$WORKFLOW_NAME | sed -e '1s/^.//' | cut -f 2 -d "'" 
+          awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/$WORKFLOW_NAME | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g'
+          awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/$WORKFLOW_NAME | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq
+          awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/$WORKFLOW_NAME | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Stages.defaultVideoStage.Configuration' --compact-output
           WORKFLOW_CONFIGURATION=$(awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/$WORKFLOW_NAME | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Stages.defaultVideoStage.Configuration' --compact-output)
           WORKFLOW_CONFIGURATION=$(echo $WORKFLOW_CONFIGURATION | sed -e 's/"faceSearch":{"MediaType":"Video","Enabled":true}/"faceSearch":{"MediaType":"Video","Enabled":false}/')
           WORKFLOW_CONFIGURATION=$(echo $WORKFLOW_CONFIGURATION | sed -e 's/"GenericDataLookup":{"MediaType":"Video","Enabled":true}/"GenericDataLookup":{"MediaType":"Video","Enabled":false}/')
