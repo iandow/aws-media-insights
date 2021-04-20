@@ -88,7 +88,7 @@ jobs:
           DATAPLANE_BUCKET=$(aws cloudformation describe-stacks --stack-name "$MIE_STACK_NAME" --region $REGION --query "Stacks[0].Outputs[?OutputKey=='DataplaneBucket'].OutputValue" --output text)
           # Upload a test video file
           wget -q https://vjs.zencdn.net/v/oceans.mp4
-          aws s3 cp oceans.mp4 s3://${DATAPLANE_BUCKET}/public/upload/
+          aws s3 cp oceans.mp4 s3://${DATAPLANE_BUCKET}
           # Install an IAM enabled HTTP client
           pip install awscurl
           
