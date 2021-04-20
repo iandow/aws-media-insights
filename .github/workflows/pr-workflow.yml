@@ -121,16 +121,12 @@ jobs:
 
           # Disable faceSearch and GenericDataLookup operator
           set -x
-          awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/$WORKFLOW_NAME | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' > here
-
-          cat here
-          echo '------------------------------------'
-          cat here | jq
-
-          # WORKFLOW_CONFIGURATION=$(awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/$WORKFLOW_NAME | sed -e '1s/^.//' | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Stages.defaultVideoStage.Configuration' --compact-output)
+          WORKFLOW_CONFIGURATION=$(awscurl -X GET --region us-west-2 ${WORKFLOW_API_ENDPOINT}workflow/$WORKFLOW_NAME | cut -f 2 -d "'" | perl -pe 's/"Definition.+?}]}}}",//g' | jq '.Stages.defaultVideoStage.Configuration' --compact-output)
           WORKFLOW_CONFIGURATION=$(echo $WORKFLOW_CONFIGURATION | sed -e 's/"faceSearch":{"MediaType":"Video","Enabled":true}/"faceSearch":{"MediaType":"Video","Enabled":false}/')
           WORKFLOW_CONFIGURATION=$(echo $WORKFLOW_CONFIGURATION | sed -e 's/"GenericDataLookup":{"MediaType":"Video","Enabled":true}/"GenericDataLookup":{"MediaType":"Video","Enabled":false}/')
           WORKFLOW_CONFIGURATION='{"defaultVideoStage":'$WORKFLOW_CONFIGURATION'}'
+          echo "WORKFLOW_CONFIGURATION:"
+          echo $WORKFLOW_CONFIGURATION
 
           # Execute workflow
           awscurl -X POST --region us-west-2 --data '{"Name":"CasVideoWorkflow", "Configuration":'$WORKFLOW_CONFIGURATION', "Input":{"Media":{"Video":{"S3Bucket": "'${DATAPLANE_BUCKET}'", "S3Key":"oceans.mp4"}}}}' ${WORKFLOW_API_ENDPOINT}workflow/execution > curl.txt
